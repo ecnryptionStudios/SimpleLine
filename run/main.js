@@ -1,5 +1,18 @@
+// Import the file system module
+const fs = require('fs');
+
+// Define the file path
+const filePath = 'input.txt';
+const data = "";
+
+try {
+    // Read the file content synchronously with 'utf-8' encoding
+    data = fs.readFileSync(filePath, 'utf-8');
+} catch (err) {
+    console.error("Error reading the file:", err);
+}
 let debugMode = false;
-run(preview, {"PI": Math.PI})
+run(data, {"PI": Math.PI, "E": Math.E})
 function run(code, setVars){
   function decide(txt){
     if(txt.match(/\/.*\//)) txt = RegExp(txt.replaceAll("/", ""))
