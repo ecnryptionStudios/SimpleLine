@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Line Documentation</title>
+
+<style>
+:root {
+    --bg: #0f1720;
+    --panel: #16202b;
+    --accent: #2bd67b;
+    --text: #e6edf3;
+    --muted: #9fb3c8;
+    --border: #243244;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+}
+
+aside {
+    width: 260px;
+    background: var(--panel);
+    padding: 20px;
+    border-right: 1px solid var(--border);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+aside h2 {
+    margin-top: 0;
+    font-size: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+aside a {
+    display: block;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+aside a:hover {
+    color: var(--accent);
+}
+
+main {
+    flex: 1;
+    padding: 40px;
+    max-width: 900px;
+}
+
+h1 {
+    font-size: 36px;
+    margin-top: 0;
+}
+
+h2 {
+    margin-top: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+p {
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+code {
+    background: #111822;
+    padding: 3px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: Consolas, monospace;
+}
+
+pre {
+    background: #0c131c;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+}
+
+footer {
+    margin-top: 60px;
+    font-size: 13px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<aside>
+    <h2>Simple Line</h2>
+    <a href="/SimpleLine/wiki/">Introduction</a>
+    <a href="/SimpleLine/wiki/variables.html">Variables</a>
+    <a href="/SimpleLine/wiki/math.html">Math</a>
+</aside>
+
+<main>
+
+<h1>Creating and storing variables</h1>
+
+<h2>Regex</h2>
+<p>a string is text. In Simple Line, the start and end are determined by the pipe (|). The code below will output "Hello, World".</p>
+
+<pre><code>|Hello, World| > log</code></pre>
+  
+<footer>
+© 2026 encryptionStudios. All Rights Reserved.
+</footer>
+
+</main>
+</body>
+</html>
