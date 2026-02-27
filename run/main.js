@@ -2,7 +2,7 @@
 const fs = require('fs');
 
 // Define the file path
-const filePath = 'toRun.txt';
+const filePath = 'toRun.smplin';
 let data = "";
 
 try {
