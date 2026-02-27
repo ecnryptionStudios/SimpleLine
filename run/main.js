@@ -2,8 +2,8 @@
 const fs = require('fs');
 
 // Define the file path
-const filePath = 'input.txt';
-const data = "";
+const filePath = 'toRun.txt';
+let data = "";
 
 try {
     // Read the file content synchronously with 'utf-8' encoding
