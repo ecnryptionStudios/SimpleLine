@@ -200,6 +200,26 @@ function run(code, setVars){
       return Math.random() * (input - val) + val;
     } else if (type == "match"){
       return input.match(val) != null
+    } else if (type == "add"){
+      val.push(input)
+      return input
+    } else if (type == "remove_at"){
+      return val.splice(1, input)
+    } else if (type == "char_at"){
+      return val.charAt(input)
+    } else if (type == "char_code_at"){
+      return val.charCodeAt(input)
+    } else if (type == "includes"){
+      return val.includes(input)
+    } else if (type == "index_of"){
+      return val.indexOf(input)
+    } else if (type == "replace"){
+      let end = val
+      let inp = input.replace("[", "").replace("]", "").split(", ")
+      for(let i = 0; i < IntVariableReplace(inp[0]); i++){
+        end = end.replace(inp[1], variableReplace(inp[2]))
+      }
+      return end
     } else if (type == "split"){
       return val.split(input)
     } else if(type.match(/.+\[[0-9]\]/g)){
