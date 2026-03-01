@@ -142,14 +142,26 @@ and minimal punctuation.
 <section id="installation">
 <h2>Installation</h2>
 <p>
-To use Simple Line, download the compiler <a href="https://github.com/ecnryptionStudios/SimpleLine/releases/latest">here</a>, extract the zip file, make sure you have <a href="https://nodejs.org/en/download">node</a>, go to the command terminal, and run:
+To use Simple Line, make sure you have <a href="https://nodejs.org/en/download">node</a>, go to the command terminal, and run:
 </p>
 
-<pre><code>cd (location)/SimpleLine-(Version)/run</code></pre>
+<pre><code>cd (the folder location where you want to run your code)</code></pre>
 
-<p>this will take you to be able to run your code. To code, go to the file in /main/main/run/ called toRun.smplin. Follow this wiki to learn to code and to run it, go back to the command terminal and run:</p>
+<p>this will take you to the folder where you want to install SimpleLine:</p>
 
-<pre><code>node main.js</code></pre>
+<pre><code>npm init -y
+npm install simpleline@latest</code></pre>
+
+<p>next, make a .smplin file, open it, and put the code in. Then, run it with:</p>
+
+<pre><code>simpleline (file name).smplin</code></pre>
+
+<p>you can also run code with javascript using:</p>
+
+<pre><code>const sl = require("simpleline"); //requires simpleline to be downloaded in the file with npm
+sl.run(`
+code
+`);</code></pre>
 </section>
 
 <footer>
