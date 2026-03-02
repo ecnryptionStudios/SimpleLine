@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SimpleLine Editor</title>
+<title>Editor with Autocomplete</title>
 <style>
 body {
     margin: 0;
@@ -90,6 +90,11 @@ body {
     color: white;
     font-size: 14px;
 }
+.output {
+  white-space: pre-wrap;
+  padding: 15px;
+  color: green;
+}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -100,11 +105,43 @@ body {
 
 <div class="divider"></div>
 
-<p class="output" id="output"></p>
+<pre class="output" id="output"></pre>
 <button class="top-button" id="runButton">RUN <i class="fa-solid fa-play"></i></button>
 
+<script type="module">
+import sl from "https://cdn.jsdelivr.net/npm/simpleline/+esm";
+
+const editor = document.getElementById("editor");
+const suggestionsBox = document.getElementById("suggestions");
+const runButton = document.getElementById("runButton");
+const output = document.getElementById("output");
+
+/* ---- everything else stays the same ---- */
+
+runButton.addEventListener("click", () => {
+
+  let logs = [];
+
+  const originalLog = console.log;
+
+  console.log = function (...args) {
+    logs.push(args.join(" "));
+  };
+
+  try {
+    sl.run(editor.innerText);
+  } catch (err) {
+    logs.push("Error: " + err.message);
+  }
+
+  console.log = originalLog;
+
+  output.innerText = logs.join("\n");
+});
+
+</script>
+
 <script>
-const sl = require("simpleline");
 const editor = document.getElementById("editor");
 const suggestionsBox = document.getElementById("suggestions");
 
@@ -366,34 +403,6 @@ function updateSelected() {
 editor.addEventListener("input", () => {
     highlight();
     updateSuggestions();
-});
-const runButton = document.getElementById("runButton");
-const output = document.getElementById("output");
-
-runButton.addEventListener("click", () => {
-
-  let logs = [];
-
-  // Save original console.log
-  const originalLog = console.log;
-
-  // Override console.log
-  console.log = function (...args) {
-    logs.push(args.join(" "));
-    originalLog.apply(console, args); // still log to devtools
-  };
-
-  try {
-    sl.run(editor.innerText);
-  } catch (err) {
-    logs.push("Error: " + err.message);
-  }
-
-  // Restore original console.log
-  console.log = originalLog;
-
-  // Show captured logs
-  output.innerText = logs.join("\n");
 });
 </script>
 
