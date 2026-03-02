@@ -12,6 +12,12 @@ For installation instructions, language guides, and full documentation, visit th
 
 ---
 
+## ✏️ Editor
+
+👉 https://ecnryptionstudios.github.io/SimpleLine/editor.html
+
+---
+
 ## ✨ About
 
 Simple Line is designed to reduce unnecessary syntax and emphasize readable, structured code.
