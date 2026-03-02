@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Editor with Autocomplete</title>
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    font-family: monospace;
+    background: #111;
+}
+
+/* Editor */
+.editor {
+    width: 50%;
+    height: 100vh;
+    background: #333;
+    color: white;
+    padding: 15px;
+    box-sizing: border-box;
+    outline: none;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    position: relative;
+}
+
+/* Suggestion dropdown */
+.suggestions {
+    position: absolute;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 4px 0;
+    min-width: 120px;
+    display: none;
+    z-index: 100;
+}
+
+.suggestion-item {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.suggestion-item.selected {
+    background: #444;
+}
+
+/* Right panel */
+.output {
+    width: 50%;
+    height: 100vh;
+    background: black;
+    margin: 0;
+}
+
+.divider {
+  width: 1%;
+  height: 100%;
+  background: #121212;
+}
+
+/* Number highlight */
+.array {
+  color: #bfff00;
+}
+.number {
+    color: #3399ff;
+}
+.string {
+    color: #ffec8d;
+}
+.function {
+  color: #e851d4;
+}
+
+/* Button */
+.top-button {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    width: 70px;
+    height: 35px;
+    background: red;
+    border: none;
+    border-radius: 7.5%;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="editor" id="editor" contenteditable="true" spellcheck="false"></div>
+<div class="suggestions" id="suggestions"></div>
+
+<div class="divider"></div>
+
+<p class="output" id="output"></p>
+<button class="top-button" id="runButton">RUN <i class="fa-solid fa-play"></i></button>
+
+<script>
+const sl = require("simpleline");
+const editor = document.getElementById("editor");
+const suggestionsBox = document.getElementById("suggestions");
+
+const numberRegex = /-?[0-9]+(\.[0-9]+)?/g;
+const stringRegex = /\|.*\|/g;
+
+const WORD_KEYWORDS = [
+    "logr","log","store","length","true","false","null",
+    "PI","E","round","ceil","floor","trunc","sign","exp",
+    "sin","cos","tan","asin","acos","atan",
+    "sinh","cosh","tanh","asinh","acosh","atanh",
+    "max","min","random","char_at","char_code_at",
+    "includes","replace","match","add","remove_at"
+];
+
+const SYMBOL_KEYWORDS = [
+    "??","?!","!!","?","!",
+    "=->","<-=","->","<-","="
+];
+
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const wordRegex = new RegExp(
+    "\\b(" + WORD_KEYWORDS.map(escapeRegex).join("|") + ")\\b",
+    "g"
+);
+
+const symbolRegex = new RegExp(
+    "(" + SYMBOL_KEYWORDS.map(escapeRegex).join("|") + ")",
+    "g"
+);
+
+
+let selectedIndex = 0;
+let currentSuggestions = [];
+
+/* ---------- Highlight ---------- */
+
+function highlight() {
+    const sel = window.getSelection();
+    const range = sel.getRangeAt(0);
+    const cursorPos = getCaretCharacterOffsetWithin(editor);
+        
+    let raw = editor.innerText;
+    
+    function tokenize(text) {
+
+  const tokenRegex =
+    /\|.*?\||-?\d+(\.\d+)?|\[|\]|,|\b[a-zA-Z_]+\b|./g;
+
+  const tokens = [...text.matchAll(tokenRegex)].map(m => m[0]);
+
+  // ----------- PASS 1: FIND MATCHING BRACKETS -----------
+  const stack = [];
+  const validBrackets = new Set();   // stores indices of valid [ and ]
+
+  tokens.forEach((token, i) => {
+    if (token === "[") {
+      stack.push(i);
+    }
+    else if (token === "]") {
+      if (stack.length > 0) {
+        const openIndex = stack.pop();
+        validBrackets.add(openIndex);
+        validBrackets.add(i);
+      }
+    }
+  });
+
+  // ----------- PASS 2: BUILD OUTPUT -----------
+  let arrayDepth = 0;
+
+  return tokens.map((token, i) => {
+
+    // ---------- STRINGS ----------
+    if (/^\|.*?\|$/.test(token)) {
+      return `<span class="string">${token}</span>`;
+    }
+
+    // ---------- NUMBERS ----------
+    if (/^-?\d+(\.\d+)?$/.test(token)) {
+      return `<span class="number">${token}</span>`;
+    }
+
+    // ---------- OPEN BRACKET ----------
+    if (token === "[") {
+      if (validBrackets.has(i)) {
+        arrayDepth++;
+        return `<span class="array">[</span>`;
+      }
+      return token; // unmatched [
+    }
+
+    // ---------- CLOSE BRACKET ----------
+    if (token === "]") {
+      if (validBrackets.has(i)) {
+        arrayDepth--;
+        return `<span class="array">]</span>`;
+      }
+      return token; // unmatched ]
+    }
+
+    // ---------- COMMA ----------
+    if (token === ",") {
+      if (arrayDepth > 0) {
+        return `<span class="array">,</span>`;
+      }
+      return token;
+    }
+
+    // ---------- KEYWORDS ----------
+    if (WORD_KEYWORDS.includes(token)) {
+      return `<span class="function">${token}</span>`;
+    }
+
+    if (SYMBOL_KEYWORDS.includes(token)) {
+      return `<span class="function">${token}</span>`;
+    }
+
+    return token;
+
+  }).join("");
+}
+    
+    editor.innerHTML = tokenize(raw);
+    setCaretPosition(editor, cursorPos);
+}
+
+/* ---------- Caret Helpers ---------- */
+
+function getCaretCharacterOffsetWithin(element) {
+    let caretOffset = 0;
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const preRange = range.cloneRange();
+        preRange.selectNodeContents(element);
+        preRange.setEnd(range.endContainer, range.endOffset);
+        caretOffset = preRange.toString().length;
+    }
+    return caretOffset;
+}
+
+function setCaretPosition(element, offset) {
+    const range = document.createRange();
+    const sel = window.getSelection();
+    let currentOffset = 0;
+
+    function traverse(node) {
+        if (node.nodeType === 3) {
+            const nextOffset = currentOffset + node.length;
+            if (offset <= nextOffset) {
+                range.setStart(node, offset - currentOffset);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                throw 1;
+            }
+            currentOffset = nextOffset;
+        } else {
+            for (let child of node.childNodes) {
+                traverse(child);
+            }
+        }
+    }
+
+    try { traverse(element); } catch {}
+}
+
+/* ---------- Autocomplete ---------- */
+
+function getCurrentWord() {
+    const text = editor.innerText;
+    const pos = getCaretCharacterOffsetWithin(editor);
+    const left = text.slice(0, pos);
+    const match = left.match(/(\w+)$/);
+    return match ? match[0] : "";
+}
+
+function updateSuggestions() {
+    const word = getCurrentWord();
+    if (!word) {
+        suggestionsBox.style.display = "none";
+        return;
+    }
+
+    currentSuggestions = WORD_KEYWORDS
+        .filter(w => w.startsWith(word))
+        .slice(0, 3);
+
+    if (currentSuggestions.length === 0) {
+        suggestionsBox.style.display = "none";
+        return;
+    }
+
+    suggestionsBox.innerHTML = "";
+    currentSuggestions.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item" + (i === 0 ? " selected" : "");
+        div.textContent = item;
+        suggestionsBox.appendChild(div);
+    });
+
+    selectedIndex = 0;
+
+    const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+    suggestionsBox.style.left = rect.left + "px";
+    suggestionsBox.style.top = rect.bottom + "px";
+    suggestionsBox.style.display = "block";
+}
+
+function applySuggestion() {
+    const word = getCurrentWord();
+    if (!word) return;
+
+    const text = editor.innerText;
+    const pos = getCaretCharacterOffsetWithin(editor);
+
+    const before = text.slice(0, pos - word.length);
+    const after = text.slice(pos);
+
+    editor.innerText = before + currentSuggestions[selectedIndex] + after;
+
+    highlight();
+    setCaretPosition(editor, before.length + currentSuggestions[selectedIndex].length);
+    suggestionsBox.style.display = "none";
+}
+
+editor.addEventListener("keydown", e => {
+    if (suggestionsBox.style.display === "block") {
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % currentSuggestions.length;
+            updateSelected();
+        }
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+            selectedIndex = (selectedIndex - 1 + currentSuggestions.length) % currentSuggestions.length;
+            updateSelected();
+        }
+        if (e.key === "Tab") {
+            e.preventDefault();
+            applySuggestion();
+        }
+    }
+});
+
+function updateSelected() {
+    const items = document.querySelectorAll(".suggestion-item");
+    items.forEach((item,i) => {
+        item.classList.toggle("selected", i === selectedIndex);
+    });
+}
+
+/* ---------- Events ---------- */
+
+editor.addEventListener("input", () => {
+    highlight();
+    updateSuggestions();
+});
+onst runButton = document.getElementById("runButton");
+const output = document.getElementById("output");
+
+runButton.addEventListener("click", () => {
+
+  let logs = [];
+
+  // Save original console.log
+  const originalLog = console.log;
+
+  // Override console.log
+  console.log = function (...args) {
+    logs.push(args.join(" "));
+    originalLog.apply(console, args); // still log to devtools
+  };
+
+  try {
+    sl.run(editor.innerText);
+  } catch (err) {
+    logs.push("Error: " + err.message);
+  }
+
+  // Restore original console.log
+  console.log = originalLog;
+
+  // Show captured logs
+  output.innerText = logs.join("\n");
+});
+</script>
+
+</body>
+</html>
