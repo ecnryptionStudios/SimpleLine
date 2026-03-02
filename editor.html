@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Editor with Autocomplete</title>
+<title>SimpleLine Editor</title>
 <style>
 body {
     margin: 0;
@@ -367,7 +367,7 @@ editor.addEventListener("input", () => {
     highlight();
     updateSuggestions();
 });
-onst runButton = document.getElementById("runButton");
+const runButton = document.getElementById("runButton");
 const output = document.getElementById("output");
 
 runButton.addEventListener("click", () => {
