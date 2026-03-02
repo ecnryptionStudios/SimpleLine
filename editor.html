@@ -135,6 +135,8 @@ runButton.addEventListener("click", () => {
   }
 
   console.log = originalLog;
+  
+  console.log(logs)
 
   output.innerText = logs.join("\n");
 });
@@ -192,7 +194,7 @@ function highlight() {
     function tokenize(text) {
 
   const tokenRegex =
-    /\|.*?\||-?\d+(\.\d+)?|\[|\]|,|\b[a-zA-Z_]+\b|./g;
+  /\|.*?\||-?\d+(\.\d+)?|\[|\]|,|\b[a-zA-Z_]+\b|\n|./g;
 
   const tokens = [...text.matchAll(tokenRegex)].map(m => m[0]);
 
@@ -217,6 +219,10 @@ function highlight() {
   let arrayDepth = 0;
 
   return tokens.map((token, i) => {
+    
+    if (token === "\n") {
+      return "\n";
+    }
 
     // ---------- STRINGS ----------
     if (/^\|.*?\|$/.test(token)) {
@@ -271,6 +277,24 @@ function highlight() {
     editor.innerHTML = tokenize(raw);
     setCaretPosition(editor, cursorPos);
 }
+
+editor.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.execCommand("insertText", false, "\n");
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+
+    const range = sel.getRangeAt(0);
+
+    const br = document.createElement("br");
+    range.insertNode(br);
+    range.setStartAfter(br);
+    range.setEndAfter(br);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+});
 
 /* ---------- Caret Helpers ---------- */
 
