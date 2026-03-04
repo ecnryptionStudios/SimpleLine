@@ -109,8 +109,8 @@ body {
 <button class="top-button" id="runButton">RUN <i class="fa-solid fa-play"></i></button>
 
 <script type="module">
-import sl from "https://cdn.jsdelivr.net/npm/simpleline@latest/lib/index.js";
-
+import { run } from "https://cdn.jsdelivr.net/npm/simpleline@latest/lib/index.js";
+    
 const editor = document.getElementById("editor");
 const suggestionsBox = document.getElementById("suggestions");
 const runButton = document.getElementById("runButton");
@@ -129,7 +129,7 @@ runButton.addEventListener("click", () => {
   };
 
   try {
-    sl.run(editor.innerText);
+    run(editor.innerText);
   } catch (err) {
     logs.push("Error: " + err.message);
   }
